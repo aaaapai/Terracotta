@@ -62,7 +62,7 @@ jobs:
           -Z build-std=core,std,alloc,proc_macro,panic_abort \
           -Z build-std-features=default,optimize_for_size
         env:
-           RUSTFLAGS: "-Zunstable-options -Cpanic=abort -Clinker=clang -Clink-arg=-fuse-ld=lld -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Ctarget-feature=+neon,+crypto,+fp-armv8,+dotprod,+rcpc -Cllvm-args=-polly -Cllvm-args=-polly-vectorizer=stripmine -Cllvm-args=-polly-invariant-load-hoisting -Cllvm-args=-polly-run-inliner -Cllvm-args=-polly-run-dce -Cllvm-args=-polly-detect-keep-going -Cllvm-args=-polly-ast-use-context -Cinline-threshold=1000 -Cno-vectorize-loops=false -Cno-vectorize-slp=false -Cprefer-dynamic=no -Cembed-bitcode=yes -Cforce-frame-pointers=no -Ccontrol-flow-guard=nochecks -Zshare-generics=y -Zcross-crate-inline-threshold=100 -Zmir-opt-level=4 -Cremark=polly -Ctarget-cpu=native -Cpasses=sroa,polly"
+           RUSTFLAGS: "-Zunstable-options -Cpanic=abort -Clinker=clang -Clink-arg=-fuse-ld=lld -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Ctarget-feature=+neon,+crypto,+fp-armv8,+dotprod,+rcpc -Cllvm-args=-polly -Cllvm-args=-polly-vectorizer=stripmine -Cllvm-args=-polly-invariant-load-hoisting -Cllvm-args=-polly-run-inliner -Cllvm-args=-polly-run-dce -Cllvm-args=-polly-detect-keep-going -Cllvm-args=-polly-ast-use-context -Cinline-threshold=1000 -Cno-vectorize-slp=false -Cprefer-dynamic=no -Cembed-bitcode=yes -Cforce-frame-pointers=no -Ccontrol-flow-guard=nochecks -Zshare-generics=y -Zcross-crate-inline-threshold=100 -Zmir-opt-level=4 -Cremark=polly -Ctarget-cpu=native -Cpasses=sroa,polly"
       - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-${{ matrix.os }}-${{ matrix.arch }}.so"
