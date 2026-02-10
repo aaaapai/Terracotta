@@ -62,7 +62,7 @@ jobs:
           -Z build-std=core,std,alloc,proc_macro,panic_abort \
           -Z build-std-features=default,optimize_for_size
         env:
-           RUSTFLAGS: "-Zunstable-options -Cpanic=abort -Clinker=clang -Clink-arg=-fuse-ld=lld -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Ctarget-feature=+neon,+fp-armv8 -Cpasses=sroa,polly"
+           RUSTFLAGS: "-Zunstable-options -Cpanic=abort -Clinker=clang -Clink-arg=-fuse-ld=lld -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Ctarget-feature=+neon,+fp-armv8"
       - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-${{ matrix.os }}-${{ matrix.arch }}.so"
