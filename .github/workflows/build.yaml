@@ -23,61 +23,20 @@ defaults:
     shell: bash
 
 jobs:
-  build-windows:
+  build-droidan:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - runs-on: windows-latest
-            os: windows
-            arch: x86_64
-            target: x86_64-pc-windows-msvc
-          - runs-on: windows-11-arm
-            os: windows
-            arch: arm64
-            target: aarch64-pc-windows-msvc
-    runs-on: ${{ matrix.runs-on }}
-    name: Build (${{ matrix.target }})
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install GitHub Artifact Client
-        uses: lhotari/gh-actions-artifact-client@v2
-      - name: Compute Version
-        run: |
-          if [ -z "${{ github.event.inputs.version }}" ]; then
-            echo "TERRACOTTA_VERSION=${GITHUB_SHA::7}" >> $GITHUB_ENV
-          else
-            echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-          fi
-      - name: Build
-        run: |
-          rustup target add --toolchain nightly "${{ matrix.target }}"
-          rustup component add rust-src --toolchain "nightly-$(rustc --print host-tuple)"
-          cargo +nightly build --release --bin terracotta --target "${{ matrix.target }}" \
-            -Z build-std=core,std,alloc,proc_macro,panic_abort \
-            -Z build-std-features=default,optimize_for_size
-        env:
-          RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - name: Upload Artifact
-        run: |
-          source="terracotta-${TERRACOTTA_VERSION}-${{ matrix.os }}-${{ matrix.arch }}.exe"
-          cp "target/${{ matrix.target }}/release/terracotta.exe" "$source"
-          7z a "$source.zip" "$source"
-          cat "$source.zip" | gh-actions-artifact-client.js upload -r 90 "$source"
-  build-unix:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { os: android, arch: arm64v8a,    target: aarch64-linux-android }
+          - { os: android, arch: arm64v8a, target: aarch64-linux-android }
     runs-on: ${{ matrix.runs-on || 'ubuntu-24.04' }}
+
     name: Build (${{ matrix.target }})
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
       - name: Install GitHub Artifact Client
-        uses: lhotari/gh-actions-artifact-client@v2
+        uses: lhotari/gh-actions-artifact-client@master
       - name: Compute Version
         run: |
           if [ -z "${{ github.event.inputs.version }}" ]; then
@@ -96,14 +55,14 @@ jobs:
         run: |
           export PATH="$PATH:$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
           export NDK_HOME="$ANDROID_NDK_LATEST_HOME"
-          
           rustup target add --toolchain nightly "${{ matrix.target }}"
           rustup component add rust-src --toolchain "nightly-$(rustc --print host-tuple)"
+
           cargo +nightly ndk build --release --lib --target "${{ matrix.target }}" \
-            -Z build-std=core,std,alloc,proc_macro,panic_abort \
-            -Z build-std-features=default,optimize_for_size
+          -Z build-std=core,std,alloc,proc_macro,panic_abort \
+          -Z build-std-features=default,optimize_for_size
         env:
-          RUSTFLAGS: -Zunstable-options -Cpanic=unwind
+           RUSTFLAGS: "-Zunstable-options -Cpanic=abort -Clinker=clang -Clink-arg=-fuse-ld=lld -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Ctarget-feature=+neon,+crypto,+fp-armv8,+dotprod,+rcpc -Cllvm-args=-polly -Cllvm-args=-polly-vectorizer=stripmine -Cllvm-args=-polly-invariant-load-hoisting -Cllvm-args=-polly-run-inliner -Cllvm-args=-polly-run-dce -Cllvm-args=-polly-detect-keep-going -Cllvm-args=-polly-ast-use-context -Cinline-threshold=1000 -Cno-vectorize-loops=false -Cno-vectorize-slp=false -Cprefer-dynamic=no -Cembed-bitcode=yes -Cforce-frame-pointers=no -Ccontrol-flow-guard=nochecks -Zshare-generics=y -Zcross-crate-inline-threshold=100 -Zmir-opt-level=4 -Cremark=polly -Ctarget-cpu=native -Cpasses=sroa,polly"
       - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-${{ matrix.os }}-${{ matrix.arch }}.so"
